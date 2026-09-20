@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador | Jacobi y Gauss-Seidel</title>
+    
+    <!-- Tus estilos CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    
+    <!-- KaTeX para renderizar fórmulas matemáticas -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
+</head>
+<body>
+
+    <header class="top-nav">
+        <div class="logo">MÉTODOS <span>NUMÉRICOS</span></div>
+        <div class="menu-icon">&#9776;</div>
+    </header>
+
+    <!-- Contenedor principal que respeta tu CSS (.presentation-grid) -->
+    <main class="presentation-grid">
+        
+        <!-- PANEL IZQUIERDO: Información del Método -->
+        <section class="left-panel">
+            <h1 class="main-title" id="titulo-metodo">Gauss<br>Seidel</h1>
+            <div class="text-block">
+                <h3>Actualización en Tiempo Real</h3>
+                <p id="descripcion-metodo">
+                    A diferencia de Jacobi, este método inyecta los valores calculados inmediatamente en la siguiente ecuación, reduciendo las iteraciones. Ideal para balanceo de carga en controladores SDN.
+                </p>
+            </div>
+        </section>
+
+        <!-- PANEL CENTRAL: Visualización 3D y Telemetría -->
+        <section class="center-panel">
+            <div id="contenedor-3d"></div>
+            
+            <div id="telemetria" class="telemetry-box hidden">
+                <p>Iteración: <span id="telemetria-iteracion">0</span></p>
+                <p>Error: <span id="telemetria-error">0.000</span></p>
+            </div>
+        </section>
+
+        <!-- PANEL DERECHO: Fórmulas y Controles -->
+        <section class="right-panel">
+            <div class="decorative-circle"></div>
+            <div class="math-block">
+                <h3>Sistema Iterativo</h3>
+                <div class="formula-display" id="formula-container">
+                    $$ x_i^{(k+1)} = \frac{1}{a_{ii}} \left( b_i - \sum_{j=1}^{i-1} a_{ij} x_j^{(k+1)} - \sum_{j=i+1}^{n} a_{ij} x_j^{(k)} \right) $$
+                </div>
+            </div>
+
+            <!-- Botón Principal de Simulación -->
+            <button class="play-btn" id="btn-simular">
+                <span class="icon">&#9658;</span>
+                <span id="texto-boton">Simular Red</span>
+            </button>
+
+            <!-- Botón para abrir el Modal de Configuración -->
+            <button class="play-btn" id="btn-config">
+                <span class="icon">⚙️</span>
+                <span>Configurar Valores</span>
+            </button>
+        </section>
+
+        <!-- Flecha de Navegación Lateral -->
+        <div class="next-slide" id="btn-siguiente">&#8594;</div>
+
+    </main>
+
+<!-- Ventana Modal de Configuración (Dinámica) -->
+    <div id="modal-config" class="modal hidden">
+        <div class="modal-content">
+            <h3 style="color: var(--accent-color); margin-top: 0;">Topología de Red</h3>
+            
+            <label style="color: #ccc; font-size: 0.95rem; display: block; margin-bottom: 1rem;">
+                Cantidad de Servidores (Nodos): 
+                <input type="number" id="num-nodos" value="3" min="2" max="8" style="width: 60px; padding: 5px; background: #333; color: white; border: 1px solid var(--accent-color); border-radius: 4px; text-align: center; margin-left: 10px;">
+            </label>
+            
+            <div id="contenedor-matriz"></div>
+            
+            <button id="btn-cerrar-config" class="btn-guardar">Aplicar Topología</button>
+        </div>
+    </div>
+
+    <!-- 1. Three.js en versión estable compatible UMD -->
+    <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+    
+    <!-- 2. Force Graph en versión estable libre de conflictos de Timer -->
+    <script src="https://unpkg.com/3d-force-graph@1.79.1"></script>
+
+    <!-- Tus scripts personalizados -->
+    <script src="js/navegacion.js"></script>
+    <script src="js/red_3d.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

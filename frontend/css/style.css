@@ -1,0 +1,294 @@
+:root {
+    --bg-color: #1a1a1c;
+    --text-primary: #f0f0f0;
+    --text-secondary: #7a7a7c;
+    --accent-color: #ff5e00;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body, html {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    height: 100vh;
+    overflow: hidden; 
+}
+
+.top-nav {
+    display: flex;
+    justify-content: space-between;
+    padding: 2rem 4rem;
+    font-size: 0.9rem;
+    letter-spacing: 2px;
+}
+
+.logo span { 
+    color: var(--accent-color); 
+    font-weight: bold; 
+}
+
+/* El Grid Principal - Forzamos 3 columnas fijas */
+.presentation-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr 1fr; /* Izquierda, Centro (3D), Derecha */
+    height: calc(100vh - 100px);
+    padding: 0 3rem;
+    align-items: center;
+    gap: 2rem;
+    width: 100vw;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+/* Panel Izquierdo */
+.left-panel {
+    z-index: 2;
+}
+
+.main-title {
+    font-size: 4.5rem;
+    line-height: 1.1;
+    margin-bottom: 3rem;
+    color: #e0d5c1;
+}
+
+.text-block h3 {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    color: var(--accent-color);
+}
+
+.text-block p {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    max-width: 300px;
+}
+
+/* Panel Central asegurando que contenga el canvas sin desbordar */
+.center-panel {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1;
+    overflow: hidden;
+}
+
+#contenedor-3d {
+    width: 100% !important;
+    height: 100% !important;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+/* Panel Derecho */
+.right-panel {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3rem;
+    padding-left: 2rem;
+}
+
+.decorative-circle {
+    width: 80px;
+    height: 80px;
+    border: 8px solid var(--accent-color);
+    border-radius: 50%;
+    position: absolute;
+    top: -80px;
+    left: -20px;
+    z-index: -1;
+    opacity: 0.8;
+}
+
+.math-block {
+    background: rgba(255,255,255,0.03);
+    padding: 1.5rem;
+    border-radius: 8px;
+    width: 100%;
+}
+
+.formula-display {
+    font-size: 1.2rem;
+    margin-top: 1rem;
+    color: #e0d5c1;
+}
+
+.play-btn {
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 0;
+}
+
+.play-btn .icon {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 50px;
+    height: 50px;
+    border: 2px solid var(--accent-color);
+    border-radius: 50%;
+    color: var(--accent-color);
+    transition: all 0.3s ease;
+}
+
+.play-btn:hover .icon {
+    background: var(--accent-color);
+    color: var(--bg-color);
+}
+
+.next-slide {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    font-size: 2rem;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: color 0.3s ease;
+}
+
+.next-slide:hover {
+    color: var(--accent-color);
+}
+
+/* Panel de Telemetría Flotante */
+.telemetry-box {
+    position: absolute;
+    top: 20px;
+    left: 20px; /* Cambiado a la izquierda para no chocar con la fórmula */
+    z-index: 10; /* Asegura que flote sobre el canvas 3D */
+    background: rgba(26, 26, 28, 0.85);
+    border: 1px solid var(--accent-color);
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    font-family: monospace;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    backdrop-filter: blur(4px);
+    transition: opacity 0.3s;
+}
+
+.telemetry-box.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.telemetry-box span {
+    color: var(--accent-color);
+    font-weight: bold;
+}
+
+.modal {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex; justify-content: center; align-items: center;
+    z-index: 999;
+    backdrop-filter: blur(5px);
+    transition: opacity 0.3s ease;
+}
+
+.modal.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.modal-content {
+    background: #1a1a1c;
+    border: 1px solid var(--accent-color);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    max-height: 85vh;
+    width: 520px;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+
+/* Contenedor vertical con Scroll Bar limpio */
+#contenedor-matriz {
+    max-height: 50vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 8px;
+    margin: 1.5rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+#contenedor-matriz::-webkit-scrollbar {
+    width: 6px;
+}
+
+#contenedor-matriz::-webkit-scrollbar-thumb {
+    background: var(--accent-color);
+    border-radius: 4px;
+}
+
+/* Fila por cada Servidor */
+.fila-servidor {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 10px 14px;
+    border-radius: 6px;
+    border-left: 3px solid var(--accent-color);
+}
+
+.fila-servidor h4 {
+    margin: 0 0 8px 0;
+    color: var(--accent-color);
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.inputs-ecuacion {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+}
+
+.inputs-ecuacion input {
+    width: 48px;
+    padding: 6px 2px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--text-secondary);
+    color: var(--text-primary);
+    text-align: center;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.inputs-ecuacion input.vector-b {
+    border-color: var(--accent-color);
+    background: rgba(255, 94, 0, 0.15);
+}
+
+.btn-guardar {
+    width: 100%; padding: 12px;
+    background: var(--accent-color);
+    color: #fff; border: none; border-radius: 4px;
+    font-size: 1rem; font-weight: bold; cursor: pointer;
+    margin-top: 0.5rem;
+}
+
+.btn-guardar:hover { background: #e05300; }
