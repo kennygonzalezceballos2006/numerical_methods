@@ -45,11 +45,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Cambiar la cantidad de nodos (rango entre 2 y 12)
+    // Cambiar la cantidad de nodos (rango actualizado entre 2 y 20)
     inputNodos.addEventListener('change', (e) => {
         let n = parseInt(e.target.value);
         if (isNaN(n) || n < 2) n = 2;
-        if (n > 12) n = 12;
+        if (n > 20) n = 20; // Permitir hasta 20 nodos
         e.target.value = n;
         
         renderizarCuadricula(n);
@@ -88,14 +88,16 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    // 3. ENVIAR A FASTAPI / UVICORN
+    // 3. ENVIAR A FASTAPI EN RENDER
     btnSimular.addEventListener('click', async () => {
         const payload = obtenerDatosMatriz();
         const textoBoton = document.getElementById('texto-boton');
         textoBoton.innerText = "Calculando...";
 
         const esJacobi = tituloMetodo.innerText.toLowerCase().includes('jacobi');
-        const url = `http://127.0.0.1:8000/api/${esJacobi ? 'jacobi' : 'gauss-seidel'}`;
+        
+        // URL remota desplegada en Render
+        const url = `https://numerical-methods-xksx.onrender.com/api/${esJacobi ? 'jacobi' : 'gauss-seidel'}`;
 
         try {
             const response = await fetch(url, {
@@ -112,7 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
         } catch (error) {
-            alert("Error de conexión con Uvicorn. Asegúrate de ejecutar el servidor backend en el puerto 8000.");
+            alert("Error de conexión con la API en Render. Verifica que el backend esté activo.");
         } finally {
             textoBoton.innerText = "Simular Red";
         }

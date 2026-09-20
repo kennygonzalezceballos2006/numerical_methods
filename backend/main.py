@@ -30,3 +30,7 @@ def endpoint_jacobi(datos: SistemaRequest):
 @app.post("/api/gauss-seidel", response_model=SistemaResponse)
 def endpoint_gauss_seidel(datos: SistemaRequest):
     return calcular_gauss_seidel(datos)
+
+@app.get("/")
+def read_root():
+    return {"status": "online", "mensaje": "API de Métodos Numéricos y SDN activa"}
