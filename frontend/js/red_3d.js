@@ -2,10 +2,8 @@
 
 let grafo3D = null;
 let datosRed = { nodes: [], links: [] };
-let temporizadorReorientacion = null;
-let estaInteractuando = false;
 
-// 1. GENERACIÓN DE TEXTURA DE SOBRE / PETICIÓN EN CANVAS
+// 1. GENERACIÓN DE TEXTURAS EN CANVAS PARA MODELOS 3D
 function crearTexturaPeticion() {
     const canvas = document.createElement('canvas');
     canvas.width = 64; canvas.height = 64;
@@ -131,36 +129,11 @@ function actualizarTopologia(n) {
                 { x: 0, y: 0, z: 0 },
                 800
             );
-            orientarFrenteServidores();
         }, 350);
     }
 }
 
-// 3. REORIENTACIÓN AL FRENTE VERTICAL CON LA PÁGINA
-function orientarFrenteServidores() {
-    if (!grafo3D || !grafo3D.camera) return;
-    const camara = grafo3D.camera();
-    const rotacionCamara = camara.quaternion.clone();
-
-    datosRed.nodes.forEach(nodo => {
-        if (nodo.__threeObj) {
-            const objeto = nodo.__threeObj;
-            let tiempo = 0;
-            const duracion = 20;
-
-            function pasodeRotacion() {
-                if (tiempo < duracion && !estaInteractuando) {
-                    tiempo++;
-                    objeto.quaternion.slerp(rotacionCamara, 0.2);
-                    requestAnimationFrame(pasodeRotacion);
-                }
-            }
-            pasodeRotacion();
-        }
-    });
-}
-
-// 4. INICIALIZAR ESCENARIO 3D
+// 3. INICIALIZAR ESCENARIO 3D CON ORIENTACIÓN FIJA
 function inicializarRed3D() {
     const contenedor = document.getElementById('contenedor-3d');
     if (!contenedor) return;
@@ -168,9 +141,6 @@ function inicializarRed3D() {
     contenedor.innerHTML = ''; 
     const nInicial = parseInt(document.getElementById('num-nodos')?.value) || 3;
     const THREE = window.THREE;
-
-    // Crear la textura del sobre / petición HTTP
-    const texturaSobre = crearTexturaPeticion();
 
     grafo3D = ForceGraph3D()(contenedor)
         .width(contenedor.clientWidth || 400)
@@ -216,7 +186,7 @@ function inicializarRed3D() {
             return malla;
         })
 
-        // RENDERIZADO DE PARTICULAS (TAMAÑO AMPLIO Y ROJO PETICIÓN)
+        // RENDERIZADO DE PARTÍCULAS
         .linkColor(link => {
             if (link.esTragicoCliente || link.source.id === 'pc' || link.source === 'pc') return 'rgba(59, 130, 246, 0.4)';
             if (link.source.id === 0 || link.source === 0) return 'rgba(255, 94, 0, 0.3)';
@@ -231,21 +201,6 @@ function inicializarRed3D() {
         })
         .linkDirectionalParticleSpeed(0.004);
 
-    const controles = grafo3D.controls();
-    if (controles) {
-        controles.addEventListener('start', () => {
-            estaInteractuando = true;
-            if (temporizadorReorientacion) clearTimeout(temporizadorReorientacion);
-        });
-
-        controles.addEventListener('end', () => {
-            estaInteractuando = false;
-            temporizadorReorientacion = setTimeout(() => {
-                orientarFrenteServidores();
-            }, 1200);
-        });
-    }
-
     const luzAmbiente = new THREE.AmbientLight(0xffffff, 0.85);
     grafo3D.scene().add(luzAmbiente);
 
@@ -256,7 +211,7 @@ function inicializarRed3D() {
     actualizarTopologia(nInicial);
 }
 
-// 5. ANIMACIÓN SECUENCIAL CON EFECTO DE ABSORCIÓN
+// 4. ANIMACIÓN SECUENCIAL CON EFECTO DE ABSORCIÓN
 function animarTopologia(historial) {
     let pasoActual = 0;
 
@@ -289,7 +244,6 @@ function animarTopologia(historial) {
             if (txtIteracion) txtIteracion.innerText = paso.iteracion;
             if (txtError) txtError.innerText = paso.error.toFixed(6);
 
-            // FASE 2 Y 3: DESACELERACIÓN PROGRESIVA DE PETICIONES
             const progreso = pasoActual / Math.max(totalPasos - 1, 1);
             const velocidadServidores = 0.050 - (progreso * 0.045);
 
