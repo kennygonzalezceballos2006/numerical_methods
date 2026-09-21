@@ -2,6 +2,7 @@ import os
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, EmailStr
+from typing import Dict, List, Optional
 from google.oauth2 import id_token
 from google.auth.transport import requests
 
@@ -15,10 +16,18 @@ app = FastAPI(
     description="Backend para resolución de Jacobi, Gauss-Seidel y evaluación OAuth2"
 )
 
-# Configuramos CORS
+origins = [
+    "http://127.0.0.1:5500",
+    "http://localhost:5500",
+    "http://127.0.0.1:8000",
+    "http://localhost:8000",
+    "https://numerical-methods-1.onrender.com",
+    "https://numerical-methods-xksx.onrender.com"
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], 
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -40,9 +49,43 @@ class AuthTokenRequest(BaseModel):
     token: str
 
 class RespuestaQuizRequest(BaseModel):
-    email: EmailStr
     nombre: str
-    respuestas: dict  # Ejemplo: {"pregunta1": "opcionA", "pregunta2": "opcionB"}
+    email: EmailStr
+    respuestas: Dict[str, float]  # ej: {"inp_sust": 0.0, "inp_res": 2.5}
+
+@app.post("/api/quiz/guardar")
+def guardar_respuestas_quiz(data: RespuestaQuizRequest):
+    # Verificación de las respuestas del ejercicio guiado
+    val_sust = data.respuestas.get("inp_sust")
+    val_res = data.respuestas.get("inp_res")
+    
+    puntaje = 0
+    if val_sust == 0.0:
+        puntaje += 50
+    if val_res == 2.5:
+        puntaje += 50
+
+    registro = {
+        "nombre": data.nombre,
+        "email": data.email,
+        "puntaje": puntaje
+    }
+    
+    # Evitar duplicados del mismo estudiante (actualizar si ya existe)
+    registro_evaluaciones[:] = [r for r in registro_evaluaciones if r["email"] != data.email]
+    registro_evaluaciones.append(registro)
+
+    return {"status": "ok", "puntaje": puntaje, "mensaje": "Respuestas guardadas con éxito"}
+
+@app.get("/api/quiz/ranking")
+def obtener_ranking():
+    # Ordenar por puntaje descendente
+    ranking_ordenado = sorted(
+        registro_evaluaciones, 
+        key=lambda x: x["puntaje"], 
+        reverse=True
+    )
+    return {"ranking": ranking_ordenado[:10]}
 
 
 # --------------------------------------------------------------------------
@@ -134,3 +177,32 @@ def obtener_resultados():
     Devuelve la lista de respuestas acumuladas de los compañeros.
     """
     return {"total": len(registro_evaluaciones), "registros": registro_evaluaciones}
+
+@app.post("/api/quiz/guardar")
+def guardar_respuestas_quiz(data: RespuestaQuizRequest):
+    # Calcular puntaje (Ejemplo: 10 pts por respuesta correcta)
+    respuestas_correctas = {"p1": "A", "p2": "C", "p3": "B"}
+    puntaje = 0
+    
+    for p, resp in data.respuestas.items():
+        if respuestas_correctas.get(p) == resp:
+            puntaje += 10
+
+    registro = {
+        "email": data.email,
+        "nombre": data.nombre,
+        "puntaje": puntaje,
+        "tiempo": data.tiempo_segundos # Opcional: para desempate
+    }
+    registro_evaluaciones.append(registro)
+    return {"status": "ok", "puntaje": puntaje}
+
+@app.get("/api/quiz/ranking")
+def obtener_ranking():
+    # Ordenar por puntaje descendente
+    ranking_ordenado = sorted(
+        registro_evaluaciones, 
+        key=lambda x: x["puntaje"], 
+        reverse=True
+    )
+    return {"ranking": ranking_ordenado[:10]}

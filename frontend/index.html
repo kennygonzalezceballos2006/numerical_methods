@@ -1,35 +1,62 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simulador | Jacobi y Gauss-Seidel</title>
-    
+
     <!-- Tus estilos CSS -->
     <link rel="stylesheet" href="css/style.css">
-    
+
     <!-- KaTeX para renderizar fórmulas matemáticas -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body);"></script>
+
+    <!-- SDK oficial de Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
+
 <body>
 
     <header class="top-nav">
         <div class="logo">MÉTODOS <span>NUMÉRICOS</span></div>
-        <div class="menu-icon">&#9776;</div>
+
+        <!-- Menú de Usuario / Autenticación -->
+        <div class="user-menu-container">
+            <!-- Estado 1: Botón Hamburguesa cuando NO hay sesión -->
+            <div class="menu-icon" id="btn-login-trigger" title="Iniciar Sesión">&#9776;</div>
+
+            <!-- Estado 2: Avatar del usuario cuando SÍ hay sesión (Oculto por defecto) -->
+            <div id="user-profile-box" class="user-profile-box hidden">
+                <img id="user-avatar" src="" alt="Foto de Perfil" class="user-avatar">
+
+                <!-- Menú Desplegable -->
+                <div id="user-dropdown" class="user-dropdown hidden">
+                    <div class="dropdown-header">
+                        <span id="dropdown-user-name">Estudiante</span>
+                    </div>
+                    <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 6px 0;">
+                    <button id="btn-ver-ranking" class="dropdown-item">🏆 Ver Ranking</button>
+                    <button id="btn-cerrar-sesion" class="dropdown-item logout">🚪 Cerrar Sesión</button>
+                </div>
+            </div>
+        </div>
     </header>
 
-    <!-- Contenedor principal que respeta tu CSS (.presentation-grid) -->
+    <!-- Contenedor principal (.presentation-grid) -->
     <main class="presentation-grid">
-        
+
         <!-- PANEL IZQUIERDO: Información del Método -->
         <section class="left-panel">
             <h1 class="main-title" id="titulo-metodo">Gauss<br>Seidel</h1>
             <div class="text-block">
                 <h3>Actualización en Tiempo Real</h3>
                 <p id="descripcion-metodo">
-                    A diferencia de Jacobi, este método inyecta los valores calculados inmediatamente en la siguiente ecuación, reduciendo las iteraciones. Ideal para balanceo de carga en controladores SDN.
+                    A diferencia de Jacobi, este método inyecta los valores calculados inmediatamente en la siguiente
+                    ecuación, reduciendo las iteraciones. Ideal para balanceo de carga en controladores SDN.
                 </p>
             </div>
         </section>
@@ -37,7 +64,7 @@
         <!-- PANEL CENTRAL: Visualización 3D y Telemetría -->
         <section class="center-panel">
             <div id="contenedor-3d"></div>
-            
+
             <div id="telemetria" class="telemetry-box hidden">
                 <p>Iteración: <span id="telemetria-iteracion">0</span></p>
                 <p>Error: <span id="telemetria-error">0.000</span></p>
@@ -50,17 +77,17 @@
             <div class="math-block">
                 <h3>Sistema Iterativo</h3>
                 <div class="formula-display" id="formula-container">
-                    $$ x_i^{(k+1)} = \frac{1}{a_{ii}} \left( b_i - \sum_{j=1}^{i-1} a_{ij} x_j^{(k+1)} - \sum_{j=i+1}^{n} a_{ij} x_j^{(k)} \right) $$
+                    $$ x_i^{(k+1)} = \frac{1}{a_{ii}} \left( b_i - \sum_{j=1}^{i-1} a_{ij} x_j^{(k+1)} -
+                    \sum_{j=i+1}^{n} a_{ij} x_j^{(k)} \right) $$
                 </div>
             </div>
 
-            <!-- Botón Principal de Simulación -->
+            <!-- Botones Principales -->
             <button class="play-btn" id="btn-simular">
                 <span class="icon">&#9658;</span>
                 <span id="texto-boton">Simular Red</span>
             </button>
 
-            <!-- Botón para abrir el Modal de Configuración -->
             <button class="play-btn" id="btn-config">
                 <span class="icon">⚙️</span>
                 <span>Configurar Valores</span>
@@ -72,31 +99,134 @@
 
     </main>
 
-<!-- Ventana Modal de Configuración (Dinámica) -->
+    <!-- MODAL 1: Configuración de Topología -->
     <div id="modal-config" class="modal hidden">
         <div class="modal-content">
             <h3 style="color: var(--accent-color); margin-top: 0;">Topología de Red</h3>
-            
+
             <label style="color: #ccc; font-size: 0.95rem; display: block; margin-bottom: 1rem;">
-                Cantidad de Servidores (Nodos): 
-                <input type="number" id="num-nodos" value="3" min="2" max="8" style="width: 60px; padding: 5px; background: #333; color: white; border: 1px solid var(--accent-color); border-radius: 4px; text-align: center; margin-left: 10px;">
+                Cantidad de Servidores (Nodos):
+                <input type="number" id="num-nodos" value="3" min="2" max="8"
+                    style="width: 60px; padding: 5px; background: #333; color: white; border: 1px solid var(--accent-color); border-radius: 4px; text-align: center; margin-left: 10px;">
             </label>
-            
+
             <div id="contenedor-matriz"></div>
-            
+
             <button id="btn-cerrar-config" class="btn-guardar">Aplicar Topología</button>
         </div>
     </div>
 
-    <!-- 1. Three.js en versión estable compatible UMD -->
+    <!-- MODAL 2: Autenticación Google OAuth -->
+    <div id="modal-auth" class="modal hidden">
+        <div class="modal-content text-center">
+            <h3 style="color: var(--accent-color); margin-top: 0;">Evaluación de Métodos Numéricos</h3>
+            <p style="color: #aaa; font-size: 0.9rem; margin-bottom: 1.5rem;">
+                Para responder el cuestionario e ingresar tus respuestas debes verificar tu identidad con tu correo
+                institucional.
+            </p>
+
+            <div id="contenedor-login" style="display: flex; justify-content: center; margin-bottom: 1rem;">
+                <div id="g_id_onload"
+                    data-client_id="470520188656-hp1qqoue2vtr33dqk9oiin7hpls0ou1q.apps.googleusercontent.com"
+                    data-callback="handleCredentialResponse" data-auto_prompt="false">
+                </div>
+
+                <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline"
+                    data-text="sign_in_with" data-shape="rectangular" data-logo_alignment="left">
+                </div>
+            </div>
+
+            <button id="btn-cerrar-auth" class="btn-guardar" style="background: #444; margin-top: 10px;"
+                onclick="cerrarModalAuth()">Cancelar</button>
+        </div>
+    </div>
+
+    <!-- MODAL 3: Cuestionario / Quiz (Incluye el Ejercicio Guiado) -->
+    <div id="modal-quiz" class="modal hidden">
+        <div class="modal-content">
+            <h3 style="color: var(--accent-color); margin-top: 0;">Cuestionario de Evaluación</h3>
+            <p id="usuario-autenticado-info" style="color: #00ffcc; font-size: 0.85rem; font-weight: bold;"></p>
+
+            <form id="form-cuestionario">
+                <div id="contenedor-preguntas">
+                    <!-- Ejercicio interactivo integrado dentro del flujo modal -->
+                    <!-- DENTRO DE #modal-quiz -> #form-cuestionario -> #contenedor-preguntas -->
+                    <div class="pregunta-card">
+                        <p><b>Ejercicio 1:</b> Dado el sistema para el Servidor 1: \(4x_1 - x_2 = 10\), despeja
+                            \(x_1^{(1)}\) sabiendo que \(x_2^{(0)} = 0\):</p>
+
+                        <div style="font-size: 1.2rem; text-align: center; margin: 20px 0; color: #e0d5c1;">
+                            $$ x_1^{(1)} = \frac{10 - (-1)(x_2^{(0)})}{4} $$
+                        </div>
+
+                        <div
+                            style="display: flex; gap: 15px; justify-content: center; align-items: center; margin-top: 15px; flex-wrap: wrap;">
+                            <label style="color: var(--text-secondary); font-size: 0.9rem;">
+                                Sustituye \(x_2^{(0)}\):
+                                <input type="number" id="inp-sust" placeholder="0"
+                                    style="width: 65px; padding: 6px; background: rgba(255,255,255,0.05); color: var(--text-primary); border: 1px solid var(--accent-color); text-align: center; border-radius: 4px; font-weight: bold;">
+                            </label>
+
+                            <label style="color: var(--text-secondary); font-size: 0.9rem;">
+                                Resultado \(x_1^{(1)}\):
+                                <input type="number" id="inp-res" step="0.01" placeholder="0.0"
+                                    style="width: 65px; padding: 6px; background: rgba(255,255,255,0.05); color: var(--text-primary); border: 1px solid var(--accent-color); text-align: center; border-radius: 4px; font-weight: bold;">
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" id="btn-enviar-quiz" class="btn-guardar" style="margin-top: 15px;">Enviar
+                    Respuestas</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 4: Paso a Paso Matemático -->
+    <div id="modal-pasos" class="modal hidden">
+        <div class="modal-content" style="width: 700px;">
+            <h3 style="color: var(--accent-color); margin-top: 0;">Procedimiento Matemático e Interpretación</h3>
+            <div id="contenedor-pasos" style="max-height: 60vh; overflow-y: auto;"></div>
+            <button onclick="document.getElementById('modal-pasos').classList.add('hidden')" class="btn-guardar"
+                style="margin-top: 15px;">Cerrar</button>
+        </div>
+    </div>
+
+    <!-- MODAL 5: Tabla de Posiciones / Ranking -->
+    <div id="modal-ranking" class="modal hidden">
+        <div class="modal-content text-center">
+            <h3 style="color: var(--accent-color); margin-top: 0;">🏆 Tabla de Posiciones</h3>
+            <table style="width: 100%; color: white; margin: 1rem 0; border-collapse: collapse;">
+                <thead>
+                    <tr style="border-bottom: 1px solid var(--accent-color);">
+                        <th>#</th>
+                        <th>Estudiante</th>
+                        <th>Puntaje</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-ranking-body"></tbody>
+            </table>
+            <button onclick="document.getElementById('modal-ranking').classList.add('hidden')" class="btn-guardar"
+                style="margin-top: 10px;">Cerrar</button>
+        </div>
+    </div>
+
+    <!-- Capa de Fondo Glassmorphic -->
+    <div id="overlay-glass" class="overlay-glass hidden"></div>
+
+    <!-- Botón flotante para salir del modo inmersivo 3D -->
+    <button id="btn-cerrar-3d" class="btn-salir-3d hidden" onclick="salirModoInmersivo3D()">
+        ✓ Aceptar y Volver a la Vista Normal
+    </button>
+
+    <!-- Librerías JS -->
     <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
-    
-    <!-- 2. Force Graph en versión estable libre de conflictos de Timer -->
     <script src="https://unpkg.com/3d-force-graph@1.79.1"></script>
 
-    <!-- Tus scripts personalizados -->
+    <!-- Scripts de la aplicación -->
     <script src="js/navegacion.js"></script>
     <script src="js/red_3d.js"></script>
     <script src="js/main.js"></script>
 </body>
+
 </html>

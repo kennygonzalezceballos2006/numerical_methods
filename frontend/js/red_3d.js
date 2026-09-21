@@ -88,30 +88,30 @@ function crearTexturaServidor() {
     return new THREE.CanvasTexture(canvas);
 }
 
+let padreOriginalTelemetria = null;
+let siguienteHermanoTelemetria = null;
+
 // 2. CONSTRUIR TOPOLOGÍA DE RED
 function actualizarTopologia(n) {
     datosRed = { nodes: [], links: [] };
     
-    // NODO 'pc': Usuarios
+    // NODO CLIENTE
     datosRed.nodes.push({ id: 'pc', nombre: '💻 Usuarios / Peticiones Web', tipo: 'pc' });
 
-    // NODO 0: Balanceador Central SDN
+    // NODO BALANCEADOR CENTRAL
     datosRed.nodes.push({ id: 0, nombre: '⚡ Balanceador SDN Central', tipo: 'balanceador' });
     
-    // Enlace Cliente -> Balanceador
     datosRed.links.push({ source: 'pc', target: 0, esTragicoCliente: true });
 
-    // NODOS 1..N: Servidores
+    // NODOS SERVIDORES
     for (let i = 1; i <= n; i++) {
         datosRed.nodes.push({ id: i, nombre: `Rack Servidor ${i}`, tipo: 'servidor' });
     }
     
-    // Conexiones Balanceador -> Servidores
     for (let i = 1; i <= n; i++) {
         datosRed.links.push({ source: 0, target: i, esTragicoBalanceador: true });
     }
 
-    // Enlaces Inter-servidor
     for (let i = 1; i <= n; i++) {
         let siguiente = (i % n) + 1;
         datosRed.links.push({ source: i, target: siguiente });
@@ -119,17 +119,25 @@ function actualizarTopologia(n) {
 
     if (grafo3D) {
         grafo3D.graphData(datosRed);
-        grafo3D.d3Force('charge').strength(-110);
-        grafo3D.d3Force('link').distance(45 + (n * 3));
 
+        const esInmersivo = document.getElementById('contenedor-3d')?.classList.contains('modo-inmersivo-3d');
+        
+        // Ajuste de fuerzas para que mantenga un bonito volumen 3D
+        const repulsion = esInmersivo ? -180 : -75;
+        const distanciaEnlaces = esInmersivo ? (55 + (n * 3)) : (25 + (n * 2));
+
+        grafo3D.d3Force('charge').strength(repulsion);
+        grafo3D.d3Force('link').distance(distanciaEnlaces);
+
+        // Distancia de cámara adaptativa: Alejada suficiente para que NO SE CORTEN los nodos en el inicio
         setTimeout(() => {
-            const distCamara = 110 + (n * 22);
+            const distCamara = esInmersivo ? (170 + (n * 16)) : (160 + (n * 28));
             grafo3D.cameraPosition(
                 { x: 0, y: 0, z: distCamara },
                 { x: 0, y: 0, z: 0 },
-                800
+                600
             );
-        }, 350);
+        }, 200);
     }
 }
 
@@ -211,8 +219,123 @@ function inicializarRed3D() {
     actualizarTopologia(nInicial);
 }
 
+function activarModoInmersivo3D() {
+    const contenedor = document.getElementById('contenedor-3d');
+    const btnCerrar = document.getElementById('btn-cerrar-3d');
+    const panelTelemetria = document.getElementById('telemetria');
+    const overlayGlass = document.getElementById('overlay-glass');
+
+    // Mover contenedor 3D al body
+    if (contenedor) {
+        padreOriginal3D = contenedor.parentNode;
+        siguienteHermano3D = contenedor.nextSibling;
+        document.body.appendChild(contenedor);
+        contenedor.classList.add('modo-inmersivo-3d');
+    }
+
+    // Mover la Telemetría al body para que flote sobre el 3D
+    if (panelTelemetria) {
+        padreOriginalTelemetria = panelTelemetria.parentNode;
+        siguienteHermanoTelemetria = panelTelemetria.nextSibling;
+        document.body.appendChild(panelTelemetria);
+        panelTelemetria.classList.remove('hidden');
+        panelTelemetria.classList.add('telemetry-inmersiva');
+    }
+
+    if (overlayGlass) overlayGlass.classList.remove('hidden');
+    if (btnCerrar) btnCerrar.classList.remove('hidden');
+
+    setTimeout(() => {
+        if (grafo3D) {
+            const ancho = window.innerWidth;
+            const alto = window.innerHeight;
+
+            grafo3D.width(ancho);
+            grafo3D.height(alto);
+
+            if (grafo3D.camera()) {
+                grafo3D.camera().aspect = ancho / alto;
+                grafo3D.camera().updateProjectionMatrix();
+            }
+
+            const n = parseInt(document.getElementById('num-nodos')?.value) || 3;
+            grafo3D.d3Force('charge').strength(-180);
+            grafo3D.d3Force('link').distance(55 + (n * 3));
+            grafo3D.d3ReheatSimulation();
+
+            grafo3D.cameraPosition(
+                { x: 0, y: 0, z: 170 + (n * 16) },
+                { x: 0, y: 0, z: 0 },
+                500
+            );
+        }
+    }, 120);
+}
+
+function salirModoInmersivo3D() {
+    const contenedor = document.getElementById('contenedor-3d');
+    const btnCerrar = document.getElementById('btn-cerrar-3d');
+    const panelTelemetria = document.getElementById('telemetria');
+    const overlayGlass = document.getElementById('overlay-glass');
+
+    // Devolver contenedor 3D a su posición original
+    if (contenedor) {
+        contenedor.classList.remove('modo-inmersivo-3d');
+        if (padreOriginal3D) {
+            if (siguienteHermano3D) {
+                padreOriginal3D.insertBefore(contenedor, siguienteHermano3D);
+            } else {
+                padreOriginal3D.appendChild(contenedor);
+            }
+        }
+    }
+
+    // Devolver la Telemetría a su posición original y ocultarla
+    if (panelTelemetria) {
+        panelTelemetria.classList.add('hidden');
+        panelTelemetria.classList.remove('telemetry-inmersiva');
+        if (padreOriginalTelemetria) {
+            if (siguienteHermanoTelemetria) {
+                padreOriginalTelemetria.insertBefore(panelTelemetria, siguienteHermanoTelemetria);
+            } else {
+                padreOriginalTelemetria.appendChild(panelTelemetria);
+            }
+        }
+    }
+
+    if (overlayGlass) overlayGlass.classList.add('hidden');
+    if (btnCerrar) btnCerrar.classList.add('hidden');
+
+    setTimeout(() => {
+        if (grafo3D && contenedor) {
+            const ancho = contenedor.clientWidth || 400;
+            const alto = contenedor.clientHeight || 400;
+
+            grafo3D.width(ancho);
+            grafo3D.height(alto);
+
+            if (grafo3D.camera()) {
+                grafo3D.camera().aspect = ancho / alto;
+                grafo3D.camera().updateProjectionMatrix();
+            }
+
+            const n = parseInt(document.getElementById('num-nodos')?.value) || 3;
+            grafo3D.d3Force('charge').strength(-75);
+            grafo3D.d3Force('link').distance(25 + (n * 2));
+            grafo3D.d3ReheatSimulation();
+
+            grafo3D.cameraPosition(
+                { x: 0, y: 0, z: 160 + (n * 28) },
+                { x: 0, y: 0, z: 0 },
+                500
+            );
+        }
+    }, 120);
+}
+
 // 4. ANIMACIÓN SECUENCIAL CON EFECTO DE ABSORCIÓN
 function animarTopologia(historial) {
+    activarModoInmersivo3D();
     let pasoActual = 0;
 
     const panelTelemetria = document.getElementById('telemetria');
