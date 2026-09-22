@@ -6,7 +6,10 @@ let usuarioAutenticado = null;
 // Helper para determinar la URL base de la API (Local vs Render)
 function getBaseUrl() {
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    return isLocal ? 'http://127.0.0.1:8000' : window.location.origin;
+    
+    return isLocal 
+        ? 'http://127.0.0.1:8000' 
+        : 'https://numerical-methods-api.onrender.com';
 }
 
 // --------------------------------------------------------------------------
