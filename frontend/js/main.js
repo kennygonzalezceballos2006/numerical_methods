@@ -19,6 +19,10 @@ async function handleCredentialResponse(response) {
     const googleToken = response.credential;
     const endpointAuth = `${getBaseUrl()}/api/auth/google`;
 
+    // Cambiar texto de aviso para dar tranquilidad al usuario
+    const btnCancel = document.getElementById('btn-cerrar-auth');
+    if (btnCancel) btnCancel.innerText = "Verificando con el servidor...";
+
     try {
         const res = await fetch(endpointAuth, {
             method: 'POST',
@@ -32,18 +36,19 @@ async function handleCredentialResponse(response) {
             sessionStorage.setItem('usuarioAutenticado', JSON.stringify(data));
             usuarioAutenticado = data;
 
-            // Actualizar la barra superior con la foto del usuario
             actualizarInterfazSesion(data);
 
-            // Ocultar modal de login y desplegar el quiz
-            document.getElementById('modal-auth')?.classList.add('hidden');
+            // Ocultar modal de login y mostrar el quiz
+            cerrarModalAuth();
             mostrarModalQuiz(data);
         } else {
             alert(`Acceso denegado: ${data.detail}`);
         }
     } catch (error) {
         console.error("Error conectando con la API de autenticación:", error);
-        alert("Error de conexión al verificar el token de Google.");
+        alert("El servidor está despertando (Cold Start de Render). Vuelve a presionar iniciar sesión en 10 segundos.");
+    } finally {
+        if (btnCancel) btnCancel.innerText = "Cancelar";
     }
 }
 
