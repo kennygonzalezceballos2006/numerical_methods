@@ -347,3 +347,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+// Función global para el onclick del botón Cancelar
+function cerrarModalAuth() {
+    const modalAuth = document.getElementById('modal-auth');
+    if (modalAuth) {
+        modalAuth.classList.add('hidden');
+    }
+}
