@@ -19,7 +19,6 @@ async function handleCredentialResponse(response) {
     const googleToken = response.credential;
     const endpointAuth = `${getBaseUrl()}/api/auth/google`;
 
-    // Cambiar texto de aviso para dar tranquilidad al usuario
     const btnCancel = document.getElementById('btn-cerrar-auth');
     if (btnCancel) btnCancel.innerText = "Verificando con el servidor...";
 
@@ -38,7 +37,6 @@ async function handleCredentialResponse(response) {
 
             actualizarInterfazSesion(data);
 
-            // Ocultar modal de login y mostrar el quiz
             cerrarModalAuth();
             mostrarModalQuiz(data);
         } else {
@@ -128,7 +126,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Cerrar modal de autenticación al hacer clic en "Cancelar"
     document.getElementById('btn-cancelar-auth')?.addEventListener('click', () => {
         modalAuth?.classList.add('hidden');
     });
@@ -278,7 +275,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (error) {
             console.error("Error en la simulación:", error);
-            alert("Error de conexión con la API backend. Revisa la consola o espera si el servidor de Render está iniciando.");
+            alert("Error de conexión con la API backend. Revisa la consola o espera si el servidor está iniciando.");
         } finally {
             if (textoBoton) textoBoton.innerText = "Simular Red";
         }
@@ -351,6 +348,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    inicializarDragAndDrop();
 });
 
 // Función global para el onclick del botón Cancelar
@@ -360,3 +359,105 @@ function cerrarModalAuth() {
         modalAuth.classList.add('hidden');
     }
 }
+
+// --------------------------------------------------------------------------
+// 3. LÓGICA INTERACTIVA DE ARRASTRAR Y SOLTAR (DRAG & DROP)
+// --------------------------------------------------------------------------
+function inicializarDragAndDrop() {
+    const cards = document.querySelectorAll('.drag-card');
+    const dropZones = document.querySelectorAll('.drop-target');
+
+    cards.forEach(card => {
+        card.addEventListener('dragstart', (e) => {
+            e.dataTransfer.setData('text/plain', card.id);
+            card.classList.add('dragging');
+        });
+
+        card.addEventListener('dragend', () => {
+            card.classList.remove('dragging');
+        });
+    });
+
+    dropZones.forEach(zone => {
+        zone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            zone.classList.add('hovered');
+        });
+
+        zone.addEventListener('dragleave', () => {
+            zone.classList.remove('hovered');
+        });
+
+        zone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            zone.classList.remove('hovered');
+
+            const idCard = e.dataTransfer.getData('text/plain');
+            const cardElement = document.getElementById(idCard);
+            if (!cardElement) return;
+
+            const targetEsperado = cardElement.getAttribute('data-target');
+            const metodoZona = zone.getAttribute('data-method');
+
+            const placeholder = zone.querySelector('.placeholder-text');
+            if (placeholder) placeholder.style.display = 'none';
+
+            zone.appendChild(cardElement);
+
+            if (targetEsperado === metodoZona) {
+                cardElement.style.borderColor = '#00ffcc';
+                cardElement.style.background = 'rgba(0, 255, 204, 0.1)';
+            } else {
+                cardElement.style.borderColor = '#ff3366';
+                cardElement.style.background = 'rgba(255, 51, 102, 0.1)';
+            }
+
+            verificarProgresoTaller();
+        });
+    });
+}
+
+function verificarProgresoTaller() {
+    const origenContainer = document.getElementById('origen-cards');
+    const tarjetasRestantes = origenContainer ? origenContainer.querySelectorAll('.drag-card').length : 0;
+    const feedbackBox = document.getElementById('feedback-drag');
+
+    if (tarjetasRestantes === 0 && feedbackBox) {
+        feedbackBox.classList.remove('hidden');
+        feedbackBox.innerHTML = `
+            <div style="text-align: center; background: rgba(0,255,204,0.1); border: 1px solid #00ffcc; padding: 15px; border-radius: 12px; margin-top: 20px;">
+                <h4 style="color: #00ffcc; margin: 0 0 5px 0;">¡Excelente trabajo!</h4>
+                <p style="color: #ccc; margin: 0; font-size: 0.9rem;">Has clasificado todas las propiedades. Ya estás listo para probar la simulación 3D.</p>
+            </div>
+        `;
+    }
+}
+
+// Scroll suave automático
+document.querySelectorAll('.nav-links a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const targetId = this.getAttribute('href');
+        const targetElement = document.querySelector(targetId);
+
+        if (targetElement) {
+            targetElement.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+    });
+});
+
+// Redimensionar el gráfico 3D usando 'grafo3D'
+window.addEventListener('resize', () => {
+    if (typeof grafo3D !== 'undefined' && grafo3D) {
+        const contenedor = document.getElementById('contenedor-3d');
+        if (contenedor) {
+            const ancho = contenedor.clientWidth || window.innerWidth;
+            const alto = contenedor.clientHeight || window.innerHeight;
+            grafo3D.width(ancho);
+            grafo3D.height(alto);
+        }
+    }
+});

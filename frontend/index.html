@@ -7,7 +7,7 @@
     <title>Simulador | Jacobi y Gauss-Seidel</title>
 
     <!-- Tus estilos CSS -->
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=2">
 
     <!-- KaTeX para renderizar fórmulas matemáticas -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
@@ -21,8 +21,17 @@
 
 <body>
 
+    <!-- NAVBAR SUPERIOR -->
     <header class="top-nav">
         <div class="logo">MÉTODOS <span>NUMÉRICOS</span></div>
+
+        <nav class="nav-links">
+            <a href="#hero">Inicio</a>
+            <a href="#teoria">Teoría</a>
+            <a href="#ejercicios">Ejercicios</a>
+            <a href="#drag-drop">Práctica</a>
+            <a href="#simulador-3d" class="btn-nav-sim">Simulador 3D</a>
+        </nav>
 
         <!-- Menú de Usuario / Autenticación -->
         <div class="user-menu-container">
@@ -46,58 +55,206 @@
         </div>
     </header>
 
-    <!-- Contenedor principal (.presentation-grid) -->
-    <main class="presentation-grid">
+    <!-- SECCIÓN 1: HERO / GANCHO DE ENTRADA -->
+    <section id="hero" class="seccion-hero">
+        <div class="hero-content">
+            <h1>Optimizando las Redes del Mañana: <br><span class="highlight">Métodos Numéricos en SDN</span></h1>
+            <p>
+                En Redes Definidas por Software (SDN), balancear el tráfico en tiempo real equivale a resolver
+                sistemas de ecuaciones masivos. Descubre cómo <strong>Jacobi</strong> y <strong>Gauss-Seidel</strong>
+                hacen posible el flujo eficiente de datos en la infraestructura digital.
+            </p>
+            <a href="#teoria" class="btn-principal">Iniciar Recorrido Teórico</a>
+        </div>
+    </section>
 
-        <!-- PANEL IZQUIERDO: Información del Método -->
-        <section class="left-panel">
-            <h1 class="main-title" id="titulo-metodo">Gauss<br>Seidel</h1>
-            <div class="text-block">
-                <h3>Actualización en Tiempo Real</h3>
-                <p id="descripcion-metodo">
-                    A diferencia de Jacobi, este método inyecta los valores calculados inmediatamente en la siguiente
-                    ecuación, reduciendo las iteraciones. Ideal para balanceo de carga en controladores SDN.
-                </p>
+    <!-- SECCIÓN 2: TEORÍA POR TEMA -->
+    <section id="teoria" class="seccion-teoria">
+        <h2 class="titulo-seccion">Fundamentos Teóricos</h2>
+        <p class="subtitulo-seccion">Dos enfoques iterativos para la resolución de sistemas lineales \(A \mathbf{x} =
+            \mathbf{b}\)</p>
+
+        <div class="grid-teoria">
+            <!-- Tarjeta Jacobi -->
+            <div class="card-teoria">
+                <div class="card-tag">Procesamiento en Paralelo</div>
+                <h3>Método de Jacobi</h3>
+                <p>Calcula todos los valores de la nueva iteración utilizando <strong>únicamente</strong> los resultados
+                    de la iteración anterior.</p>
+
+                <div class="formula-box">
+                    $$x_i^{(k+1)} = \frac{1}{a_{ii}} \left( b_i - \sum_{j \neq i} a_{ij} x_j^{(k)} \right)$$
+                </div>
+
+                <ul class="lista-detalles">
+                    <li><strong>\(x_i^{(k+1)}\):</strong> Valor del nodo \(i\) en la iteración actual.</li>
+                    <li><strong>\(a_{ii}\):</strong> Coeficiente diagonal principal (\(a_{ii} \neq 0\)).</li>
+                    <li><strong>\(b_i\):</strong> Carga total de tráfico demandada en el nodo.</li>
+                    <li><strong>\(x_j^{(k)}\):</strong> Estado de los demás nodos en la iteración <em>anterior</em>.
+                    </li>
+                </ul>
             </div>
-        </section>
 
-        <!-- PANEL CENTRAL: Visualización 3D y Telemetría -->
-        <section class="center-panel">
-            <div id="contenedor-3d"></div>
+            <!-- Tarjeta Gauss-Seidel -->
+            <div class="card-teoria highlight-card">
+                <div class="card-tag">Actualización Inmediata</div>
+                <h3>Método de Gauss-Seidel</h3>
+                <p>Utiliza de <strong>inmediato</strong> los valores que se van calculando en la iteración actual para
+                    hallar las siguientes variables.</p>
 
-            <div id="telemetria" class="telemetry-box hidden">
-                <p>Iteración: <span id="telemetria-iteracion">0</span></p>
-                <p>Error: <span id="telemetria-error">0.000</span></p>
+                <div class="formula-box">
+                    $$x_i^{(k+1)} = \frac{1}{a_{ii}} \left( b_i - \sum_{j=1}^{i-1} a_{ij} x_j^{(k+1)} - \sum_{j=i+1}^{n}
+                    a_{ij} x_j^{(k)} \right)$$
+                </div>
+
+                <ul class="lista-detalles">
+                    <li><strong>\(\sum_{j=1}^{i-1} a_{ij} x_j^{(k+1)}\):</strong> Reemplaza con valores <em>ya
+                            actualizados</em>.</li>
+                    <li><strong>\(\sum_{j=i+1}^{n} a_{ij} x_j^{(k)}\):</strong> Utiliza valores pendientes de la
+                        iteración anterior.</li>
+                    <li><strong>Ventaja:</strong> Convergencia más rápida y menor uso de memoria.</li>
+                </ul>
             </div>
-        </section>
+        </div>
 
-        <!-- PANEL DERECHO: Fórmulas y Controles -->
-        <section class="right-panel">
-            <div class="decorative-circle"></div>
-            <div class="math-block">
-                <h3>Sistema Iterativo</h3>
-                <div class="formula-display" id="formula-container">
-                    $$ x_i^{(k+1)} = \frac{1}{a_{ii}} \left( b_i - \sum_{j=1}^{i-1} a_{ij} x_j^{(k+1)} -
-                    \sum_{j=i+1}^{n} a_{ij} x_j^{(k)} \right) $$
+        <!-- Criterio de Convergencia -->
+        <div class="banner-convergencia">
+            <h4>Condición de Convergencia: Matriz Diagonalmente Dominante</h4>
+            <p>Para garantizar que ambos métodos converjan hacia la solución exacta, se debe cumplir estrictamente:</p>
+            <div class="formula-center">
+                $$\left| a_{ii} \right| > \sum_{j \neq i} \left| a_{ij} \right|$$
+            </div>
+        </div>
+    </section>
+
+    <!-- SECCIÓN 3: EJERCICIOS PRÁCTICOS -->
+    <section id="ejercicios" class="seccion-ejercicios">
+        <h2 class="titulo-seccion">Caso de Estudio: Balanceo en 3 Switches</h2>
+        <p class="subtitulo-seccion">Sistema de ecuaciones \(3 \times 3\) modelando el tráfico en controladores SDN</p>
+
+        <div class="ejercicio-container">
+            <div class="ejercicio-matriz">
+                <h4>Sistema de Ecuaciones:</h4>
+                <div class="math-block">
+                    $$\begin{aligned}
+                    10 x_1 - 2 x_2 - x_3 &= 7 \\
+                    -x_1 + 8 x_2 - 2 x_3 &= 5 \\
+                    -2 x_1 - x_2 + 5 x_3 &= 2
+                    \end{aligned}$$
                 </div>
             </div>
 
-            <!-- Botones Principales -->
-            <button class="play-btn" id="btn-simular">
-                <span class="icon">&#9658;</span>
-                <span id="texto-boton">Simular Red</span>
-            </button>
+            <div class="ejercicio-analisis">
+                <h4>Análisis de Convergencia (Diagonal Dominante):</h4>
+                <ul class="pasos-evaluacion">
+                    <li><strong>Fila 1:</strong> \(|10| > |-2| + |-1| \quad \rightarrow \quad 10 > 3\) <span
+                            class="badge-check">✓ Cumple</span></li>
+                    <li><strong>Fila 2:</strong> \(|8| > |-1| + |-2| \quad \rightarrow \quad 8 > 3\) <span
+                            class="badge-check">✓ Cumple</span></li>
+                    <li><strong>Fila 3:</strong> \(|5| > |-2| + |-1| \quad \rightarrow \quad 5 > 3\) <span
+                            class="badge-check">✓ Cumple</span></li>
+                </ul>
+                <p class="nota-ejercicio">
+                    * Con \(\epsilon < 0.001\), <strong>Gauss-Seidel</strong> alcanza la solución en <strong>4
+                            iteraciones</strong>, mientras que <strong>Jacobi</strong> requiere <strong>8
+                            iteraciones</strong>.
+                </p>
+            </div>
+        </div>
+    </section>
 
-            <button class="play-btn" id="btn-config">
-                <span class="icon">⚙️</span>
-                <span>Configurar Valores</span>
-            </button>
-        </section>
+    <!-- SECCIÓN 4: PRÁCTICA INTERACTIVA (DRAG & DROP) -->
+    <section id="drag-drop" class="seccion-dragdrop">
+        <h2 class="titulo-seccion">Taller Interactivo: Arrastrar y Clasificar</h2>
+        <p class="subtitulo-seccion">Arrastra las características hacia el método correspondiente</p>
 
-        <!-- Flecha de Navegación Lateral -->
-        <div class="next-slide" id="btn-siguiente">&#8594;</div>
+        <div class="drag-container">
+            <!-- Bloques para arrastrar -->
+            <div id="origen-cards" class="tarjetas-origen">
+                <div class="drag-card" draggable="true" id="item-1" data-target="jacobi">Usa solo valores \(x^{(k)}\) de
+                    la iteración anterior</div>
+                <div class="drag-card" draggable="true" id="item-2" data-target="gauss">Utiliza \(x^{(k+1)}\) tan pronto
+                    como está disponible</div>
+                <div class="drag-card" draggable="true" id="item-3" data-target="jacobi">Ideal para ejecución en
+                    paralelo (GPU / Clusters)</div>
+                <div class="drag-card" draggable="true" id="item-4" data-target="gauss">Requiere menos iteraciones para
+                    converger</div>
+            </div>
 
-    </main>
+            <!-- Zonas de soltar (Dropzones) -->
+            <div class="drop-zones">
+                <div class="drop-target" id="zone-jacobi" data-method="jacobi">
+                    <h3>Método de Jacobi</h3>
+                    <div class="placeholder-text">Arrastra aquí sus características</div>
+                </div>
+
+                <div class="drop-target" id="zone-gauss" data-method="gauss">
+                    <h3>Método de Gauss-Seidel</h3>
+                    <div class="placeholder-text">Arrastra aquí sus características</div>
+                </div>
+            </div>
+        </div>
+        <div id="feedback-drag" class="feedback-container hidden"></div>
+    </section>
+
+    <!-- SECCIÓN 5: SIMULADOR 3D Y EVALUACIÓN -->
+    <section id="simulador-3d" class="seccion-simulador">
+        <!-- Contenedor principal (.presentation-grid) -->
+        <main class="presentation-grid">
+
+            <!-- PANEL IZQUIERDO: Título y Descripción (SIN FLECHA) -->
+            <section class="left-panel">
+                <h1 class="main-title" id="titulo-metodo">Gauss<br>Seidel</h1>
+                <div class="text-block">
+                    <h3>Actualización en Tiempo Real</h3>
+                    <p id="descripcion-metodo">
+                        A diferencia de Jacobi, este método inyecta los valores calculados inmediatamente en la
+                        siguiente ecuación, reduciendo las iteraciones. Ideal para balanceo de carga en controladores
+                        SDN.
+                    </p>
+                </div>
+            </section>
+
+            <!-- PANEL CENTRAL: Visualización 3D y Telemetría -->
+            <section class="center-panel">
+                <div id="contenedor-3d"></div>
+
+                <div id="telemetria" class="telemetry-box hidden">
+                    <p>Iteración: <span id="telemetria-iteracion">0</span></p>
+                    <p>Error: <span id="telemetria-error">0.000</span></p>
+                </div>
+            </section>
+
+            <!-- PANEL DERECHO: Fórmulas con Flecha Integrada y Controles -->
+            <section class="right-panel">
+                <div class="math-block">
+                    <div class="math-header">
+                        <h3>Sistema Iterativo</h3>
+                        <!-- ÚNICA FLECHA ACTIVA DE LA VISTA -->
+                        <button class="next-slide" id="btn-siguiente" title="Cambiar Método">
+                            &#8594;
+                        </button>
+                    </div>
+                    <div class="formula-display" id="formula-container">
+                        $$ x_i^{(k+1)} = \frac{1}{a_{ii}} \left( b_i - \sum_{j=1}^{i-1} a_{ij} x_j^{(k+1)} -
+                        \sum_{j=i+1}^{n} a_{ij} x_j^{(k)} \right) $$
+                    </div>
+                </div>
+
+                <!-- Botones Principales -->
+                <button class="play-btn" id="btn-simular">
+                    <span class="icon">&#9658;</span>
+                    <span id="texto-boton">Simular Red</span>
+                </button>
+
+                <button class="play-btn" id="btn-config">
+                    <span class="icon">⚙️</span>
+                    <span>Configurar Valores</span>
+                </button>
+            </section>
+
+        </main>
+    </section>
 
     <!-- MODAL 1: Configuración de Topología -->
     <div id="modal-config" class="modal hidden">
@@ -149,8 +306,6 @@
 
             <form id="form-cuestionario">
                 <div id="contenedor-preguntas">
-                    <!-- Ejercicio interactivo integrado dentro del flujo modal -->
-                    <!-- DENTRO DE #modal-quiz -> #form-cuestionario -> #contenedor-preguntas -->
                     <div class="pregunta-card">
                         <p><b>Ejercicio 1:</b> Dado el sistema para el Servidor 1: \(4x_1 - x_2 = 10\), despeja
                             \(x_1^{(1)}\) sabiendo que \(x_2^{(0)} = 0\):</p>
@@ -226,7 +381,7 @@
     <!-- Scripts de la aplicación -->
     <script src="js/navegacion.js"></script>
     <script src="js/red_3d.js"></script>
-    <script src="js/main.js?v=3"></script>
+    <script src="js/main.js?v=6"></script>
 </body>
 
 </html>
